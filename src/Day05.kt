@@ -41,7 +41,7 @@ fun main() {
     }
 
     fun decouperEnPaires(liste: List<Long>): List<Pair<Long, Long>> {
-        val intermediaire = liste.windowed(size = 2, step = 2, partialWindows = false) {
+        return liste.windowed(size = 2, step = 2, partialWindows = false) {
             it[0] to it[1]
         }
     }
