@@ -56,6 +56,11 @@ fun main() {
     check(part2(testInput2) == 281)
 
     val input = readInput("Day01")
+    val debut = System.currentTimeMillis()
     part1(input).println()
+    val part1 = System.currentTimeMillis()
+    println("Temps d'exécution: ${part1 - debut} ms")
     part2(input).println()
+    val part2 = System.currentTimeMillis()
+    println("Temps d'exécution: ${part2 - part1} ms")
 }
