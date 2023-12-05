@@ -1,28 +1,28 @@
+import kotlinx.coroutines.*
+
 fun main() {
-    fun parseLines(input: List<String>): Pair<List<Long>, MutableMap<String, MutableList<List<Long>>>> {
-        var current = "seeds"
+    fun parseLines(input: List<String>): Pair<List<Long>, List<List<List<Long>>>> {
         var seeds = listOf<Long>()
-        val converters = mutableMapOf<String, MutableList<List<Long>>>()
+        val converters = mutableListOf<MutableList<List<Long>>>()
         for (line in input) {
             val trimmed = line.trim()
             if (trimmed.isEmpty())
                 continue
-            if (current == "seeds" && !trimmed.endsWith("map:")) {
+            if (trimmed.startsWith("seeds:")) {
                 seeds = trimmed.split(":").last().trim().split(" ").map { it.toLong() }
             } else if (trimmed.endsWith("map:")) {
-                current = trimmed.split(" ").first().split("-").last()
+                converters.add(mutableListOf<List<Long>>())
             } else {
-                converters.getOrPut(current) { mutableListOf() }.add(trimmed.split(" ").map { it.toLong() })
+                converters.last().add(trimmed.split(" ").map { it.toLong() })
             }
         }
         return seeds to converters
     }
 
     fun parseConverters(currentValue: Long, convertValues: List<List<Long>>): Long {
-        for ((dest, src, inc) in convertValues) {
+        for ((dest, src, inc) in convertValues)
             if ((currentValue >= src) && (currentValue < src + inc))
                 return dest + currentValue - src
-        }
         return currentValue
     }
 
@@ -32,9 +32,8 @@ fun main() {
         var lowest = Long.MAX_VALUE
         for (seed in seeds) {
             var res = seed
-            for (k in listOf("soil", "fertilizer", "water", "light", "temperature", "humidity", "location")) {
-                res = converters[k]?.let { parseConverters(res, it) }!!
-            }
+            for (c in converters)
+                res = parseConverters(res, c)
             if (res < lowest)
                 lowest = res
         }
@@ -42,20 +41,35 @@ fun main() {
     }
 
     fun decouperEnPaires(liste: List<Long>): List<Pair<Long, Long>> {
-        return liste.windowed(size = 2, step = 2, partialWindows = false) {
+        val intermediaire = liste.windowed(size = 2, step = 2, partialWindows = false) {
             it[0] to it[1]
         }
     }
 
-    fun part2(input: List<String>): Long {
-        val (seeds, converters) = parseLines(input)
+    fun checkRange(firstSeed: Long, lenSeed: Long, converters: List<List<List<Long>>>): Long {
         var lowest = Long.MAX_VALUE
-        for ((firstSeed, lenSeed) in decouperEnPaires(seeds)) {
-            for (seed in firstSeed..<firstSeed + lenSeed) {
-                var res = seed
-                for (k in listOf("soil", "fertilizer", "water", "light", "temperature", "humidity", "location")) {
-                    res = converters[k]?.let { parseConverters(res, it) }!!
+        for (seed in firstSeed..< (firstSeed + lenSeed)) {
+            var res = seed
+            for (c in converters)
+                res = parseConverters(res, c)
+
+            if (res < lowest)
+                lowest = res
+        }
+        return lowest
+    }
+
+    fun part2(input: List<String>): Long {
+        var lowest = Long.MAX_VALUE
+        runBlocking {
+            val (seeds, converters) = parseLines(input)
+            val jobs = decouperEnPaires(seeds).map { (firstSeed, lenSeed) ->
+                async(Dispatchers.Default) {
+                    checkRange(firstSeed, lenSeed, converters)
                 }
+            }
+            val resultats = jobs.map { it.await() }
+            for (res in resultats) {
                 if (res < lowest)
                     lowest = res
             }
