@@ -21,24 +21,19 @@ fun main() {
         }
         var effectiveCol = 0
         var lastCol = 0
-        val tmpCoords = mutableListOf<Pair<Int, Int>>()
-        for (j in input[0].indices) {
-            for (i in input.indices) {
-                if (input[i][j] == '#') {
-                    var ecartCol = (j - lastCol)
-                    lastCol = j
-                    if (ecartCol > 1)
-                        ecartCol = 1 + (galaxyAge * (ecartCol - 1))
-                    effectiveCol += ecartCol
-                    tmpCoords.add(((coordinatesToValue[i to j] to effectiveCol) as Pair<Int, Int>))
-                }
-            }
-        }
-        val coords = tmpCoords.sortedWith(compareBy({ it.first }, { it.second }))
+        val coords = mutableListOf<Pair<Int, Int>>()
         var total = 0L
-        for (i in coords.indices)
-            for (j in (i + 1)..<coords.size)
-                total += abs(coords[j].first - coords[i].first) + abs(coords[j].second - coords[i].second)
+        for ( (coord, row) in coordinatesToValue.toList().sortedBy { (key, _) -> key.second }.toMap()) {
+            var ecartCol = (coord.second - lastCol)
+            lastCol = coord.second
+            if (ecartCol > 1)
+                ecartCol = 1 + (galaxyAge * (ecartCol - 1))
+            effectiveCol += ecartCol
+            val newCoord = row to effectiveCol
+            for (i in coords.indices)
+                total += abs(newCoord.first - coords[i].first) + abs(newCoord.second - coords[i].second)
+            coords.add(newCoord)
+        }
         return total
     }
 
