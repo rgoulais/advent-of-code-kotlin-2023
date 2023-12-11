@@ -127,7 +127,7 @@ class Solver10(inputStr: MutableList<String>) {
         return ret
     }
 
-    fun countInsidePoints(): Int {
+    fun replaceSByPipe() {
         val origin = pipes[0]
         val fmatch = pipes[1]
         val smatch = pipes[2]
@@ -142,7 +142,10 @@ class Solver10(inputStr: MutableList<String>) {
                 exitProcess(0)
             }
         }
+    }
 
+    fun countInsidePoints(): Int {
+        replaceSByPipe()
         for (i in input.indices) {
             for (j in input[0].indices) {
                 if (!pipes.contains(i to j))
